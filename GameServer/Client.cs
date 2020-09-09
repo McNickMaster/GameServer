@@ -52,14 +52,22 @@ namespace GameServer
                 try
                 {
                     int _byteLength = stream.EndRead(_result);
-                    if(_byteLength <= 0)
+                    if (_byteLength <= 0)
                     {
-                        // TODO: disconnect
+                        Server.clients[id].Disconnect();
+                        return;
                     }
-                } catch (Exception _ex)
+
+                    byte[] _data = new byte[_byteLength];
+                    Array.Copy(receiveBuffer, _data, _byteLength);
+
+                    receivedData.Reset(HandleData(_data)); // Reset receivedData if all data was handled
+                    stream.BeginRead(receiveBuffer, 0, dataBufferSize, ReceiveCallback, null);
+                }
+                catch (Exception _ex)
                 {
-                    Console.WriteLine($"Error recieving TCP data: {_ex}");
-                    // TODO: disconnect
+                    Console.WriteLine($"Error receiving TCP data: {_ex}");
+                    Server.clients[id].Disconnect();
                 }
             }
         }
